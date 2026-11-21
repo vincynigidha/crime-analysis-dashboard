@@ -1,0 +1,7 @@
+Flask
+PyMySQL
+cryptography
+Werkzeug
+pandas
+scikit-learn
+joblib
