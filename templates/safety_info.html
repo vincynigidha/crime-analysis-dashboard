@@ -1,0 +1,33 @@
+{% extends "portal_base.html" %}
+{% block title %}Safety Information{% endblock %}
+{% block content %}
+<div class="container my-5" style="max-width: 700px;">
+    <div class="portal-eyebrow">Public Safety</div>
+    <h1 class="mb-4">Safety Information</h1>
+
+    <div class="card p-4 mb-4">
+        <h5><i class="bi bi-telephone-fill"></i> Emergency Contacts</h5>
+        <table class="table mb-0 mt-3">
+            <tbody>
+                <tr><td>Police</td><td class="mono fw-bold">100</td></tr>
+                <tr><td>National Emergency Number</td><td class="mono fw-bold">112</td></tr>
+                <tr><td>Ambulance</td><td class="mono fw-bold">108</td></tr>
+                <tr><td>Women's Helpline</td><td class="mono fw-bold">1091</td></tr>
+                <tr><td>Child Helpline</td><td class="mono fw-bold">1098</td></tr>
+                <tr><td>Cyber Crime Helpline</td><td class="mono fw-bold">1930</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card p-4">
+        <h5><i class="bi bi-lightbulb-fill"></i> General Safety Tips</h5>
+        <ul class="mb-0 mt-3">
+            <li>Stay aware of your surroundings, especially at night or in unfamiliar areas.</li>
+            <li>Keep emergency numbers saved and easily accessible on your phone.</li>
+            <li>Report suspicious activity promptly, even if you're unsure it's significant.</li>
+            <li>Avoid sharing personal financial details over phone or email to unverified sources.</li>
+            <li>Inform a trusted person of your location when traveling alone at night.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Crime Trend Analysis{% endblock %}
+{% block content %}
+
+<!-- Segmented period selector -->
+<div class="segmented-control mb-4">
+    <a href="{{ url_for('trends', period='daily') }}"
+       class="segmented-item {{ 'active' if period == 'daily' }}">Daily</a>
+    <a href="{{ url_for('trends', period='weekly') }}"
+       class="segmented-item {{ 'active' if period == 'weekly' }}">Weekly</a>
+    <a href="{{ url_for('trends', period='monthly') }}"
+       class="segmented-item {{ 'active' if period == 'monthly' }}">Monthly</a>
+    <a href="{{ url_for('trends', period='yearly') }}"
+       class="segmented-item {{ 'active' if period == 'yearly' }}">Yearly</a>
+    <a href="{{ url_for('trends', period='category') }}"
+       class="segmented-item {{ 'active' if period == 'category' }}">Category-wise</a>
+</div>
+
+<div class="trend-layout">
+    <!-- Left: headline stat + delta -->
+    <div class="trend-stat-card">
+        <div class="trend-stat-label">
+            {% if period == 'daily' %}Total Crimes<span>Last 30 Days</span>
+            {% elif period == 'weekly' %}Total Crimes<span>Last 12 Weeks</span>
+            {% elif period == 'monthly' %}Total Crimes<span>Last 12 Months</span>
+            {% elif period == 'yearly' %}Total Crimes<span>All Years</span>
+            {% else %}Total Crimes<span>All Categories</span>
+            {% endif %}
+        </div>
+        <div class="trend-stat-value">{{ total_in_period }}</div>
+
+        {% if delta is not none %}
+        <div class="trend-delta {{ 'trend-up' if delta > 0 else ('trend-down' if delta < 0 else 'trend-flat') }}">
+            <i class="bi {{ 'bi-arrow-up-right' if delta > 0 else ('bi-arrow-down-right' if delta < 0 else 'bi-dash') }}"></i>
+            {% if delta_pct is not none %}
+                {{ delta_pct|abs }}%
+            {% else %}
+                {{ delta|abs }}
+            {% endif %}
+            <span class="trend-delta-caption">vs. previous period ({{ previous_total }})</span>
+        </div>
+        {% else %}
+        <div class="trend-delta trend-flat">
+            <span class="trend-delta-caption">No prior period to compare</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right: chart -->
+    <div class="trend-chart-card">
+        <div class="trend-chart-header">
+            <h6>
+                {% if period == 'category' %}Category-wise Crime Count
+                {% else %}{{ period|capitalize }} Crime Trend
+                {% endif %}
+            </h6>
+        </div>
+        {% if labels %}
+        <canvas id="trendChart" height="90"></canvas>
+        {% else %}
+        <div class="trend-empty">
+            <i class="bi bi-inbox"></i>
+            <p>No crime records found for this period yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Breakdown table -->
+{% if breakdown %}
+<div class="card mt-4">
+    <div class="card-body">
+        <h6>{{ 'Category Breakdown' if period == 'category' else 'Period Breakdown' }}</h6>
+        <table class="table table-striped align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>{{ 'Category' if period == 'category' else 'Period' }}</th>
+                    <th>Crimes</th>
+                    <th style="width: 45%;">Share of Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in breakdown %}
+                <tr>
+                    <td>{{ row.label }}</td>
+                    <td class="mono">{{ row.count }}</td>
+                    <td>
+                        <div class="share-bar-track">
+                            <div class="share-bar-fill" style="width: {{ row.share }}%;"></div>
+                        </div>
+                        <span class="share-bar-label">{{ row.share }}%</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+    const labels = {{ labels | tojson }};
+    const counts = {{ counts | tojson }};
+    const chartType = {{ chart_type | tojson }};
+
+    // Theme palette -- derived from the site's navy/amber/slate identity,
+    // used for the category-wise bar chart so each bar is distinguishable.
+    const themePalette = [
+        '#1B3A63', '#E8A33D', '#2F7D5C', '#B3423A', '#3E6E96',
+        '#64748B', '#8A5A2B', '#4A7C7C', '#7A5C9E', '#C98A1E',
+    ];
+
+    if (labels.length > 0) {
+        const ctx = document.getElementById('trendChart');
+
+        let datasetConfig;
+        if (chartType === 'bar') {
+            datasetConfig = {
+                label: 'Crimes',
+                data: counts,
+                backgroundColor: labels.map((_, i) => themePalette[i % themePalette.length]),
+                borderRadius: 4,
+                barThickness: 28,
+            };
+        } else {
+            // Line chart with a subtle amber gradient fill under the line
+            const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 320);
+            gradient.addColorStop(0, 'rgba(232, 163, 61, .28)');
+            gradient.addColorStop(1, 'rgba(232, 163, 61, 0)');
+
+            datasetConfig = {
+                label: 'Crimes',
+                data: counts,
+                borderColor: '#1B3A63',
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.35,
+                borderWidth: 2.5,
+                pointRadius: 3,
+                pointBackgroundColor: '#E8A33D',
+                pointBorderColor: '#1B3A63',
+                pointBorderWidth: 1.5,
+            };
+        }
+
+        new Chart(ctx, {
+            type: chartType,
+            data: { labels: labels, datasets: [datasetConfig] },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0, font: { family: 'JetBrains Mono', size: 11 } },
+                        grid: { color: '#EEF0F3' },
+                    },
+                    x: {
+                        ticks: { font: { family: 'Inter', size: 11 } },
+                        grid: { display: false },
+                    },
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#16202B',
+                        titleFont: { family: 'Oswald' },
+                        bodyFont: { family: 'JetBrains Mono' },
+                        padding: 10,
+                        cornerRadius: 4,
+                    },
+                },
+            },
+        });
+    }
+</script>
+{% endblock %}

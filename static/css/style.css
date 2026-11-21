@@ -1,0 +1,813 @@
+/* ===================================================================
+   Crime Analysis Dashboard -- design tokens
+   Palette:  navy (primary/structure), amber (signature accent, used
+   sparingly), paper (background), status colors kept legible/muted.
+   Type:     Oswald (display/headings), Inter (body), JetBrains Mono
+   (IDs, figures, coordinates -- the "case file" register).
+=================================================================== */
+
+:root {
+    --navy-900: #0B1F3A;
+    --navy-800: #122A4D;
+    --navy-700: #1B3A63;
+    --amber-500: #E8A33D;
+    --amber-600: #C98A2A;
+    --paper-50:  #F5F6F8;
+    --ink-900:   #16202B;
+    --slate-500: #64748B;
+    --slate-200: #DDE3EA;
+
+    /* Bootstrap theme overrides -- cascades to btn-*, bg-*, text-*, badge, etc. */
+    --bs-primary: var(--navy-700);
+    --bs-primary-rgb: 27, 58, 99;
+    --bs-secondary: var(--slate-500);
+    --bs-secondary-rgb: 100, 116, 139;
+    --bs-success: #2F7D5C;
+    --bs-success-rgb: 47, 125, 92;
+    --bs-warning: #C98A1E;
+    --bs-warning-rgb: 201, 138, 30;
+    --bs-danger: #B3423A;
+    --bs-danger-rgb: 179, 66, 58;
+    --bs-info: #3E6E96;
+    --bs-info-rgb: 62, 110, 150;
+    --bs-dark: var(--ink-900);
+    --bs-dark-rgb: 22, 32, 43;
+    --bs-body-font-family: 'Inter', -apple-system, sans-serif;
+    --bs-body-color: var(--ink-900);
+    --bs-border-radius: .375rem;
+    --bs-border-radius-sm: .25rem;
+    --bs-border-radius-lg: .5rem;
+    --bs-link-color: var(--navy-700);
+    --bs-link-hover-color: var(--amber-600);
+}
+
+body {
+    background-color: var(--paper-50);
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    letter-spacing: .02em;
+    color: var(--ink-900);
+    text-transform: uppercase;
+}
+
+code, .mono, td.mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* ---------------- App shell: sidebar + main content ---------------- */
+
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--navy-900);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: 1.5rem 1.25rem;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.brand-seal {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 2px solid var(--amber-500);
+    color: var(--amber-500);
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: .85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: .03em;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.brand-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .62rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--amber-500);
+}
+
+.brand-title {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 1rem .75rem;
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+    overflow-y: auto;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .6rem .75rem;
+    border-radius: .3rem;
+    color: rgba(255,255,255,.68);
+    text-decoration: none;
+    font-size: .88rem;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: background-color .12s ease, color .12s ease;
+}
+
+.sidebar-link i {
+    font-size: 1rem;
+    width: 1.1rem;
+    text-align: center;
+}
+
+.sidebar-link:hover {
+    background: rgba(255,255,255,.06);
+    color: #fff;
+}
+
+.sidebar-link.active {
+    background: rgba(232,163,61,.12);
+    color: #fff;
+    border-left-color: var(--amber-500);
+}
+
+.sidebar-footer {
+    padding: 1rem .9rem;
+    border-top: 1px solid rgba(255,255,255,.08);
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    flex: 1;
+    text-decoration: none;
+    min-width: 0;
+}
+
+.user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--navy-700);
+    color: var(--amber-500);
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: .8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.user-name {
+    color: rgba(255,255,255,.85);
+    font-size: .82rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-logout {
+    color: rgba(255,255,255,.5);
+    font-size: 1.1rem;
+    text-decoration: none;
+    padding: .3rem;
+}
+
+.sidebar-logout:hover {
+    color: var(--amber-500);
+}
+
+.main-area {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar {
+    background: #fff;
+    border-bottom: 1px solid var(--slate-200);
+    border-top: 3px solid var(--amber-500);
+    padding: 1.1rem 2rem;
+}
+
+.topbar-title {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.content-container {
+    padding: 1.75rem 2rem 2.5rem;
+    flex: 1;
+}
+
+/* ---------------- Auth (login) page ---------------- */
+
+.auth-shell {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--navy-900);
+    background-image: radial-gradient(circle at 20% 20%, rgba(232,163,61,.08), transparent 45%);
+    padding: 1rem;
+}
+
+.auth-flash {
+    position: absolute;
+    top: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(420px, 90%);
+}
+
+.auth-panel {
+    width: min(380px, 100%);
+    background: #fff;
+    border-radius: .5rem;
+    border-top: 3px solid var(--amber-500);
+    padding: 2.25rem 2rem 2rem;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,.25);
+}
+
+.auth-seal {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto .9rem;
+    border-radius: 50%;
+    border: 2px solid var(--amber-500);
+    color: var(--navy-700);
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--amber-600);
+    margin-bottom: .35rem;
+}
+
+.auth-title {
+    font-size: 1.4rem;
+    margin-bottom: .35rem;
+}
+
+.auth-subtitle {
+    font-family: 'Inter', sans-serif;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--slate-500);
+    font-size: .85rem;
+    margin-bottom: 1.5rem;
+}
+
+.auth-form {
+    text-align: left;
+}
+
+/* ---------------- Cards, tables, badges ---------------- */
+
+.card {
+    border: 1px solid var(--slate-200);
+    border-radius: .5rem;
+    box-shadow: 0 1px 2px rgba(16,24,40,.04);
+}
+
+.card h6 {
+    font-size: .78rem;
+    letter-spacing: .06em;
+    color: var(--slate-500);
+    margin-bottom: .75rem;
+}
+
+/* Stat cards keep their bg-* color but get a consistent amber top rule --
+   ties them back to the sidebar/topbar signature accent. */
+.card.bg-primary, .card.bg-success, .card.bg-warning, .card.bg-danger,
+.card.bg-info, .card.bg-secondary, .card.bg-dark {
+    border: none;
+    border-top: 3px solid var(--amber-500);
+}
+.card.bg-primary h2, .card.bg-success h2, .card.bg-warning h2, .card.bg-danger h2,
+.card.bg-info h2, .card.bg-secondary h2, .card.bg-dark h2 {
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: none;
+    color: #fff;
+}
+.card.bg-primary h6, .card.bg-success h6, .card.bg-warning h6, .card.bg-danger h6,
+.card.bg-info h6, .card.bg-secondary h6, .card.bg-dark h6 {
+    color: rgba(255,255,255,.85);
+}
+.card.bg-primary p, .card.bg-success p, .card.bg-warning p, .card.bg-danger p,
+.card.bg-info p, .card.bg-secondary p, .card.bg-dark p {
+    color: rgba(255,255,255,.7);
+}
+
+table thead th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--slate-500);
+    border-bottom-width: 1px;
+    font-weight: 500;
+}
+
+table td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--slate-500);
+}
+
+.badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    font-size: .68rem;
+}
+
+.btn {
+    font-weight: 500;
+    letter-spacing: .01em;
+}
+
+.navbar-brand {
+    font-weight: 600;
+}
+
+/* ---------------- Trends page: segmented control, stat/chart layout ---------------- */
+
+.segmented-control {
+    display: inline-flex;
+    background: #fff;
+    border: 1px solid var(--slate-200);
+    border-radius: .5rem;
+    padding: .25rem;
+    gap: .15rem;
+}
+
+.segmented-item {
+    padding: .5rem 1.1rem;
+    border-radius: .35rem;
+    font-family: 'Inter', sans-serif;
+    font-size: .85rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--slate-500);
+    transition: background-color .12s ease, color .12s ease;
+}
+
+.segmented-item:hover {
+    background: var(--paper-50);
+    color: var(--ink-900);
+}
+
+.segmented-item.active {
+    background: var(--navy-700);
+    color: #fff;
+}
+
+.trend-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.25rem;
+    align-items: stretch;
+}
+
+.trend-stat-card {
+    background: var(--navy-900);
+    background-image: radial-gradient(circle at 85% 15%, rgba(232,163,61,.14), transparent 55%);
+    border-radius: .5rem;
+    border-top: 3px solid var(--amber-500);
+    padding: 1.75rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #fff;
+}
+
+.trend-stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: rgba(255,255,255,.6);
+    margin-bottom: .5rem;
+}
+
+.trend-stat-label span {
+    display: block;
+    color: var(--amber-500);
+    margin-top: .15rem;
+}
+
+.trend-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 3rem;
+    font-weight: 500;
+    line-height: 1;
+    margin-bottom: 1.1rem;
+}
+
+.trend-delta {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .95rem;
+    font-weight: 500;
+    flex-wrap: wrap;
+}
+
+.trend-delta.trend-up { color: #F2B84E; }
+.trend-delta.trend-down { color: #6FB894; }
+.trend-delta.trend-flat { color: rgba(255,255,255,.5); }
+
+.trend-delta-caption {
+    font-family: 'Inter', sans-serif;
+    text-transform: none;
+    letter-spacing: normal;
+    font-weight: 400;
+    font-size: .78rem;
+    color: rgba(255,255,255,.5);
+    width: 100%;
+    margin-top: .15rem;
+}
+
+.trend-chart-card {
+    background: #fff;
+    border: 1px solid var(--slate-200);
+    border-radius: .5rem;
+    box-shadow: 0 1px 2px rgba(16,24,40,.04);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.trend-chart-header h6 {
+    font-size: .78rem;
+    letter-spacing: .06em;
+    color: var(--slate-500);
+    margin-bottom: 1rem;
+}
+
+.trend-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--slate-500);
+    padding: 3rem 0;
+}
+
+.trend-empty i {
+    font-size: 2rem;
+    margin-bottom: .5rem;
+    opacity: .5;
+}
+
+.trend-empty p {
+    font-family: 'Inter', sans-serif;
+    text-transform: none;
+    font-size: .9rem;
+    margin: 0;
+}
+
+.share-bar-track {
+    display: inline-block;
+    width: calc(100% - 3.5rem);
+    height: 8px;
+    background: var(--paper-50);
+    border-radius: 4px;
+    overflow: hidden;
+    vertical-align: middle;
+}
+
+.share-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--navy-700), var(--amber-500));
+    border-radius: 4px;
+}
+
+.share-bar-label {
+    display: inline-block;
+    width: 3rem;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .78rem;
+    color: var(--slate-500);
+    vertical-align: middle;
+}
+
+@media (max-width: 900px) {
+    .trend-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------------- Public Citizen Portal ---------------- */
+
+.portal-body {
+    background: var(--paper-50);
+}
+
+.portal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--navy-900);
+    padding: 1rem 2rem;
+    border-bottom: 3px solid var(--amber-500);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.portal-brand {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    text-decoration: none;
+}
+
+.portal-seal {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--amber-500);
+    color: var(--amber-500);
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: .85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.portal-brand-eyebrow {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .62rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: rgba(255,255,255,.55);
+}
+
+.portal-brand-title {
+    display: block;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+}
+
+.portal-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.portal-links a {
+    color: rgba(255,255,255,.75);
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    font-size: .88rem;
+    font-weight: 500;
+}
+
+.portal-links a:hover {
+    color: var(--amber-500);
+}
+
+.portal-admin-link {
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: .35rem;
+    padding: .4rem .9rem !important;
+}
+
+.portal-hero {
+    background: var(--navy-900);
+    background-image: radial-gradient(circle at 80% 20%, rgba(232,163,61,.16), transparent 55%);
+    color: #fff;
+    padding: 4.5rem 0;
+    text-align: center;
+}
+
+.portal-hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--amber-500);
+    margin-bottom: .75rem;
+}
+
+.portal-hero h1 {
+    font-size: 2.5rem;
+    text-transform: none;
+    color: #fff;
+    margin-bottom: 1rem;
+}
+
+.portal-hero p {
+    font-family: 'Inter', sans-serif;
+    text-transform: none;
+    letter-spacing: normal;
+    color: rgba(255,255,255,.7);
+    font-size: 1.05rem;
+    max-width: 560px;
+    margin: 0 auto 2rem;
+}
+
+.portal-hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.portal-feature-card {
+    background: #fff;
+    border: 1px solid var(--slate-200);
+    border-radius: .5rem;
+    border-top: 3px solid var(--amber-500);
+    padding: 1.75rem;
+    height: 100%;
+}
+
+.portal-feature-card i {
+    font-size: 1.6rem;
+    color: var(--navy-700);
+    margin-bottom: .75rem;
+    display: block;
+}
+
+.portal-feature-card h5 {
+    text-transform: none;
+    margin-bottom: .5rem;
+}
+
+.portal-feature-card p {
+    font-family: 'Inter', sans-serif;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--slate-500);
+    font-size: .9rem;
+}
+
+.portal-feature-card a {
+    font-family: 'Inter', sans-serif;
+    font-size: .88rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--navy-700);
+}
+
+.portal-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--amber-600);
+    margin-bottom: .35rem;
+}
+
+.portal-footer {
+    background: #fff;
+    border-top: 1px solid var(--slate-200);
+    padding: 1.25rem 0;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: .82rem;
+    color: var(--slate-500);
+    margin-top: auto;
+}
+
+.reference-id-box {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    background: var(--paper-50);
+    border: 1px dashed var(--amber-500);
+    border-radius: .4rem;
+    padding: .75rem 1rem;
+    margin: 1rem 0;
+    color: var(--navy-700);
+}
+
+.status-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    padding: .35rem .75rem;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.status-pending-review { background: rgba(232,163,61,.15); color: var(--amber-600); }
+.status-under-investigation { background: rgba(27,58,99,.1); color: var(--navy-700); }
+.status-resolved { background: rgba(47,125,92,.12); color: #2F7D5C; }
+.status-rejected { background: rgba(179,66,58,.12); color: #B3423A; }
+
+.linkage-badge {
+    text-decoration: none;
+    font-size: .68rem;
+    vertical-align: middle;
+    margin-left: .4rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+.linkage-badge:hover {
+    background-color: var(--amber-500) !important;
+    color: var(--ink-900) !important;
+}
+
+/* ---------------- Responsive ---------------- */
+
+@media (max-width: 900px) {
+    .app-shell {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        flex-direction: row;
+        align-items: center;
+        overflow-x: auto;
+    }
+    .sidebar-brand {
+        border-bottom: none;
+        border-right: 1px solid rgba(255,255,255,.08);
+    }
+    .sidebar-nav {
+        flex-direction: row;
+        padding: .5rem;
+    }
+    .sidebar-link span {
+        display: none;
+    }
+    .sidebar-footer {
+        border-top: none;
+        border-left: 1px solid rgba(255,255,255,.08);
+    }
+    .user-name {
+        display: none;
+    }
+    .content-container {
+        padding: 1.25rem;
+    }
+    .topbar {
+        padding: 1rem 1.25rem;
+    }
+}

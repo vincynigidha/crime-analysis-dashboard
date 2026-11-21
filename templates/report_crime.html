@@ -1,0 +1,134 @@
+{% extends "portal_base.html" %}
+{% block title %}Report a Crime{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #reportPickMap { height: 300px; border-radius: 8px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="max-width: 700px;">
+    <div class="portal-eyebrow">Public Reporting Form</div>
+    <h1 class="mb-2">Report a Crime</h1>
+    <p class="text-muted mb-4">
+        Fields marked with the shield icon are optional -- you may report anonymously.
+        All reports are reviewed by an administrator before being added to official records.
+    </p>
+
+    <form method="POST" action="{{ url_for('report_crime_public') }}" class="card p-4">
+        <div class="mb-3">
+            <label class="form-label">What happened? <span class="text-danger">*</span></label>
+            <textarea name="description" class="form-control" rows="4" required
+                      placeholder="Describe the incident in as much detail as you can..."></textarea>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Crime Category</label>
+                <select name="category_id" class="form-select">
+                    <option value="">Not sure / Other</option>
+                    {% for c in categories %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Date of Incident <span class="text-danger">*</span></label>
+                <input type="text" name="incident_date" class="form-control" value="{{ today|fmt_date }}" placeholder="DD-MM-YYYY" pattern="\d{2}[-/]\d{2}[-/]\d{4}" maxlength="10" required>
+            </div>
+        </div>
+
+        <div class="mb-2">
+            <label class="form-label">Location</label>
+            <input type="text" id="mapSearchInput" class="form-control mb-2" placeholder="Search for a place or address...">
+            <div id="reportPickMap"></div>
+        </div>
+        <input type="hidden" name="area_name" id="areaNameInput">
+        <input type="hidden" name="latitude" id="latInput">
+        <input type="hidden" name="longitude" id="lngInput">
+        <p class="form-text mb-4">Click on the map or search above to mark where it happened (optional but helpful).</p>
+
+        <hr class="my-2">
+        <p class="text-muted small mb-3">
+            <i class="bi bi-shield-lock"></i> The fields below are optional. Leave them blank to report anonymously.
+        </p>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Your Name</label>
+                <input type="text" name="reporter_name" class="form-control">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Phone</label>
+                <input type="text" name="reporter_phone" class="form-control">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="reporter_email" class="form-control">
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg mt-2">Submit Report</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const TAMIL_NADU_CENTER = [11.1271, 78.6569];
+    const TAMIL_NADU_ZOOM = 7;
+    const TN_VIEWBOX = '76.23,13.56,80.35,8.07';
+
+    const map = L.map('reportPickMap').setView(TAMIL_NADU_CENTER, TAMIL_NADU_ZOOM);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let marker = null;
+
+    async function placePin(lat, lng, skipGeocode) {
+        document.getElementById('latInput').value = lat.toFixed(6);
+        document.getElementById('lngInput').value = lng.toFixed(6);
+        const latlng = [lat, lng];
+        if (marker) { marker.setLatLng(latlng); } else { marker = L.marker(latlng).addTo(map); }
+        map.setView(latlng, 14);
+
+        if (skipGeocode) return;
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14`);
+            const data = await res.json();
+            const name = data.address
+                ? (data.address.suburb || data.address.neighbourhood || data.address.city_district
+                   || data.address.town || data.address.city || data.display_name.split(',')[0])
+                : null;
+            if (name) document.getElementById('areaNameInput').value = name;
+        } catch (err) {
+            console.warn('Reverse geocoding failed:', err);
+        }
+    }
+
+    map.on('click', function (e) { placePin(e.latlng.lat, e.latlng.lng, false); });
+
+    async function runSearch() {
+        const query = document.getElementById('mapSearchInput').value.trim();
+        if (!query) return;
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&viewbox=${TN_VIEWBOX}&bounded=0&limit=1`);
+            const results = await res.json();
+            if (results.length === 0) { alert('No results found. Try a different search.'); return; }
+            const { lat, lon, display_name } = results[0];
+            document.getElementById('areaNameInput').value = display_name.split(',')[0];
+            placePin(parseFloat(lat), parseFloat(lon), true);
+        } catch (err) {
+            alert('Search failed -- check your internet connection.');
+        }
+    }
+
+    document.getElementById('mapSearchInput').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); runSearch(); }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "portal_base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<section class="portal-hero">
+    <div class="container">
+        <div class="portal-hero-eyebrow">Public Access &middot; No Login Required</div>
+        <h1>Report. Track. Stay Informed.</h1>
+        <p>
+            A public channel to report non-emergency crimes, follow up on submitted reports,
+            and view safety information for your area.
+        </p>
+        <div class="portal-hero-actions">
+            <a href="{{ url_for('report_crime_public') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-file-earmark-text"></i> Report a Crime
+            </a>
+            <a href="{{ url_for('track_status') }}" class="btn btn-outline-light btn-lg">
+                <i class="bi bi-search"></i> Track My Report
+            </a>
+        </div>
+    </div>
+</section>
+
+<div class="container my-5">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="portal-feature-card">
+                <i class="bi bi-file-earmark-plus"></i>
+                <h5>Report a Crime</h5>
+                <p>Submit details of an incident -- anonymously if you prefer. You'll get a
+                   reference ID to track it.</p>
+                <a href="{{ url_for('report_crime_public') }}">File a report &rarr;</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="portal-feature-card">
+                <i class="bi bi-search"></i>
+                <h5>Track Status</h5>
+                <p>Already reported something? Enter your reference ID to see where it stands.</p>
+                <a href="{{ url_for('track_status') }}">Check status &rarr;</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="portal-feature-card">
+                <i class="bi bi-shield-check"></i>
+                <h5>Safety Information</h5>
+                <p>Emergency numbers, nearby stations, and basic safety guidance.</p>
+                <a href="{{ url_for('safety_info') }}">View safety info &rarr;</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

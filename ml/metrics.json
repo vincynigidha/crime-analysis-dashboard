@@ -1,0 +1,1 @@
+{"mae": 0.89, "r2": 0.113, "trained_rows": 3964, "areas": ["Anna Nagar", "Gandhipuram", "Madurai Junction", "RS Puram", "Salem Junction", "T. Nagar", "Thanjavur Town", "Trichy Junction", "Velachery", "Vellore Fort"], "categories": ["Assault", "Burglary", "Cybercrime", "Drug Offense", "Fraud", "Homicide", "Kidnapping", "Robbery", "Theft", "Vandalism"]}

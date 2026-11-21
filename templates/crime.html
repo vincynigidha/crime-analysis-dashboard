@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}Crime Records{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0">Crime Records</h3>
+    <div>
+        <a href="{{ url_for('case_linkage') }}" class="btn btn-outline-dark">
+            <i class="bi bi-diagram-3"></i> Case Linkage
+        </a>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCrimeModal">
+            + Add Crime
+        </button>
+    </div>
+</div>
+
+<!-- Search / Filter bar -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('crimes') }}" class="row g-2">
+            <div class="col-md-5">
+                <input type="text" name="q" class="form-control" placeholder="Search title or description..."
+                       value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="Pending" {{ 'selected' if status_filter == 'Pending' }}>Pending</option>
+                    <option value="Solved" {{ 'selected' if status_filter == 'Solved' }}>Solved</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for c in categories %}
+                    <option value="{{ c.id }}" {{ 'selected' if category_filter == c.id|string }}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-outline-primary w-100">Go</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Reported</th>
+                    <th style="width: 160px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in records %}
+                <tr>
+                    <td>{{ r.id }}</td>
+                    <td>
+                        {{ r.title }}
+                        {% if similar_counts.get(r.id, 0) > 0 %}
+                        <a href="{{ url_for('case_linkage') }}" class="badge bg-dark linkage-badge" title="Possibly connected to other cases nearby">
+                            <i class="bi bi-link-45deg"></i> {{ similar_counts.get(r.id) }} similar case{{ 's' if similar_counts.get(r.id) != 1 }}
+                        </a>
+                        {% endif %}
+                        {% if series_by_crime.get(r.id) %}
+                        <span class="badge bg-secondary" title="Crime series name">{{ series_by_crime.get(r.id) }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ r.category_name or '-' }}</td>
+                    <td>{{ r.area_name or '-' }}</td>
+                    <td>
+                        <span class="badge {{ 'bg-success' if r.status == 'Solved' else 'bg-warning' }}">
+                            {{ r.status }}
+                        </span>
+                    </td>
+                    <td style="white-space:nowrap">{{ r.reported_date|fmt_date }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-secondary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editCrimeModal{{ r.id }}">
+                            Edit
+                        </button>
+                        <form method="POST" action="{{ url_for('delete_crime', crime_id=r.id) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('Delete this crime record?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+
+                <!-- Edit modal for this record -->
+                <div class="modal fade" id="editCrimeModal{{ r.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="POST" action="{{ url_for('edit_crime', crime_id=r.id) }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Crime Record</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Title</label>
+                                        <input type="text" name="title" class="form-control" value="{{ r.title }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Description</label>
+                                        <textarea name="description" class="form-control" rows="2">{{ r.description or '' }}</textarea>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Category</label>
+                                            <select name="category_id" class="form-select">
+                                                <option value="">-- None --</option>
+                                                {% for c in categories %}
+                                                <option value="{{ c.id }}" {{ 'selected' if c.id == r.category_id }}>{{ c.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Location</label>
+                                            <select name="location_id" class="form-select">
+                                                <option value="">-- None --</option>
+                                                {% for l in locations %}
+                                                <option value="{{ l.id }}" {{ 'selected' if l.id == r.location_id }}>{{ l.area_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Status</label>
+                                            <select name="status" class="form-select">
+                                                <option value="Pending" {{ 'selected' if r.status == 'Pending' }}>Pending</option>
+                                                <option value="Solved" {{ 'selected' if r.status == 'Solved' }}>Solved</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Reported Date</label>
+                                            <input type="text" name="reported_date" class="form-control" value="{{ r.reported_date|fmt_date }}" placeholder="DD-MM-YYYY" pattern="\d{2}[-/]\d{2}[-/]\d{4}" maxlength="10" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted">No crime records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Crime Modal -->
+<div class="modal fade" id="addCrimeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('add_crime') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Crime Record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" name="title" class="form-control" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Category</label>
+                            <select name="category_id" class="form-select">
+                                <option value="">-- None --</option>
+                                {% for c in categories %}
+                                <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Location</label>
+                            <select name="location_id" class="form-select">
+                                <option value="">-- None --</option>
+                                {% for l in locations %}
+                                <option value="{{ l.id }}">{{ l.area_name }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if not locations %}
+                            <div class="form-text">No locations yet -- these will show once Module 6 is built.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="Pending">Pending</option>
+                                <option value="Solved">Solved</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Reported Date</label>
+                            <input type="text" name="reported_date" class="form-control" value="{{ today|fmt_date }}" placeholder="DD-MM-YYYY" pattern="\d{2}[-/]\d{2}[-/]\d{4}" maxlength="10" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Crime</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

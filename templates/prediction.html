@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Crime Prediction{% endblock %}
+{% block content %}
+
+<h3 class="mb-2">Crime Prediction</h3>
+<p class="text-muted mb-4">
+    Forecast for the next <strong>{{ horizon }} days</strong>, built only from your
+    <strong>Crime Records</strong> and the <strong>Case Linkage</strong> series. No outside dataset is used.
+</p>
+
+<!-- Data used -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card text-white bg-dark"><div class="card-body">
+        <h6>Cases used</h6><h2>{{ used_cases }}</h2>
+        <p class="mb-0 small">of {{ total_cases }} in Crime Records{% if used_cases != total_cases %} (rest have no area or category){% endif %}</p>
+    </div></div></div>
+    <div class="col-md-3"><div class="card text-white bg-secondary"><div class="card-body">
+        <h6>Linked series</h6><h2>{{ series_count }}</h2>
+        <p class="mb-0 small">{{ series_case_count }} cases belong to a series</p>
+    </div></div></div>
+    <div class="col-md-3"><div class="card text-white bg-info"><div class="card-body">
+        <h6>Data period</h6>
+        <h5 class="mb-1">{{ date_from|fmt_date }}</h5>
+        <p class="mb-0 small">to {{ date_to|fmt_date }}</p>
+    </div></div></div>
+    <div class="col-md-3"><div class="card text-white bg-primary"><div class="card-body">
+        <h6>Forecast from</h6>
+        <h5 class="mb-1">{{ today|fmt_date }}</h5>
+        <p class="mb-0 small">next {{ horizon }} days</p>
+    </div></div></div>
+</div>
+
+<!-- Predict one area + category -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h6 class="mb-3">Predict for an area and category</h6>
+        <form method="GET" action="{{ url_for('prediction') }}" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label">Area</label>
+                <select name="area" class="form-select" required>
+                    {% for a in areas %}<option value="{{ a }}" {{ 'selected' if selected_area == a }}>{{ a }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-select" required>
+                    {% for c in categories %}<option value="{{ c }}" {{ 'selected' if selected_category == c }}>{{ c }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100">Predict</button></div>
+        </form>
+
+        {% if result %}
+        <hr>
+        <p class="mb-1">
+            Expected <strong>{{ '%.1f'|format(result.expected) }}</strong> {{ result.category }} case(s) in
+            <strong>{{ result.area }}</strong> over the next {{ horizon }} days
+            <span class="badge {{ 'bg-danger' if result.risk == 'High' else 'bg-warning text-dark' if result.risk == 'Medium' else 'bg-success' }}">{{ result.risk }} risk</span>
+        </p>
+        <p class="text-muted small mb-0">
+            Based on {{ result.past_cases }} past case(s) here{% if result.last_case %}, the latest on {{ result.last_case|fmt_date }}{% endif %}.
+            {% if result.group %}Linked group <strong>{{ result.group.name }}</strong>
+            ({{ result.group.solved }} of {{ result.group.size }} cases solved) is the pattern most likely to repeat here.
+            {% else %}No linked crime group matches this area and category.{% endif %}
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Hotspot table -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h6 class="mb-3">Highest-risk area and category pairs (next {{ horizon }} days)</h6>
+        {% if cells %}
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead><tr>
+                    <th>Area</th><th>Category</th><th>Past cases</th><th>Last case</th>
+                    <th>Expected</th><th>Risk</th><th>Group likely to repeat</th>
+                </tr></thead>
+                <tbody>
+                {% for c in cells %}
+                <tr>
+                    <td>{{ c.area }}</td>
+                    <td>{{ c.category }}</td>
+                    <td>{{ c.past_cases }}</td>
+                    <td style="white-space:nowrap">{{ c.last_case|fmt_date }}</td>
+                    <td>{{ '%.1f'|format(c.expected) }}</td>
+                    <td><span class="badge {{ 'bg-danger' if c.risk == 'High' else 'bg-warning text-dark' if c.risk == 'Medium' else 'bg-success' }}">{{ c.risk }}</span></td>
+                    <td class="small">
+                        {% if c.group %}
+                        <span class="badge bg-primary">{{ c.group.name }}</span>
+                        <div class="text-muted">{{ c.group.solved }} of {{ c.group.size }} cases solved &middot; likely to repeat here</div>
+                        {% else %}
+                        <span class="text-muted">No linked group</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">Add crime records with an area and category to see predictions.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Accuracy -->
+<div class="card">
+    <div class="card-body">
+        <h6 class="mb-2">How accurate is this?</h6>
+        {% if backtest %}
+        <p class="mb-1">
+            Backtest: using only cases up to {{ horizon }} days ago ({{ backtest.train_cases }} cases), the forecast
+            predicted <strong>{{ backtest.predicted_total }}</strong> cases across {{ backtest.cells }} area/category pairs;
+            <strong>{{ backtest.actual_total }}</strong> actually happened.
+            Average error per pair: <strong>{{ backtest.mae }}</strong> (guessing zero everywhere would give {{ backtest.naive_mae }}).
+        </p>
+        {% else %}
+        <p class="mb-1">Not enough older cases yet to run a backtest.</p>
+        {% endif %}
+        <p class="text-muted small mb-0">
+            With only {{ used_cases }} cases, treat these as rough planning estimates for trend direction, not exact counts.
+            They become more reliable as you add more crime records.
+            A "group" is a series of linked cases (same category, nearby, close in time) found by Case Linkage; it is a crime pattern, not a confirmed identity.
+        </p>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="auth-panel">
+    <div class="auth-seal">CA</div>
+    <div class="auth-eyebrow">Tamil Nadu &middot; Records Access</div>
+    <h1 class="auth-title">Crime Analysis</h1>
+    <p class="auth-subtitle">Authorized personnel only. Sign in to continue.</p>
+
+    <form method="POST" action="{{ url_for('login') }}" class="auth-form">
+        <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input type="text" name="username" class="form-control" required autofocus>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Sign In</button>
+    </form>
+    <div class="text-center mt-3">
+        <a href="{{ url_for('portal_home') }}" class="small">&larr; Back to Public Portal</a>
+    </div>
+</div>
+{% endblock %}

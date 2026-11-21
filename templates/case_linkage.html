@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Case Linkage{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h3 class="mb-0">Case Linkage Detector</h3>
+    <a href="{{ url_for('crimes') }}" class="btn btn-outline-secondary btn-sm">&larr; Back to Crime Records</a>
+</div>
+<p class="text-muted mb-4">
+    Flags groups of 3+ cases that share the same category, are within
+    <strong>{{ radius_km }} km</strong> of each other, and occurred within
+    <strong>{{ window_days }} days</strong> -- a possible pattern worth a closer look.
+    Rule-based, not a black box: every link shown here can be explained by category + distance + time.
+</p>
+
+{% if clusters %}
+<div class="accordion" id="linkageAccordion">
+    {% for cluster in clusters %}
+    <div class="accordion-item mb-2">
+        <h2 class="accordion-header">
+            <button class="accordion-button {{ 'collapsed' if not loop.first }}" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#cluster{{ loop.index }}">
+                <span class="badge bg-dark me-2">{{ cluster.size }} cases</span>
+                {% set solved_n = cluster.members|selectattr('status','equalto','Solved')|list|length %}
+                <span class="badge bg-success me-2">{{ solved_n }} solved</span>
+                <span class="badge bg-primary me-2">{{ cluster.series_name }}</span>
+                <strong class="me-2">{{ cluster.category_name }}</strong>
+                <span class="text-muted small">
+                    &middot; {{ cluster.areas|join(', ') }}
+                    &middot; {{ cluster.date_start|fmt_date }} to {{ cluster.date_end|fmt_date }}
+                </span>
+            </button>
+        </h2>
+        <div id="cluster{{ loop.index }}" class="accordion-collapse collapse {{ 'show' if loop.first }}"
+             data-bs-parent="#linkageAccordion">
+            <div class="accordion-body p-0">
+                {% if cluster.forecast %}
+                {% set f = cluster.forecast %}
+                <div class="p-3 border-bottom bg-light">
+                    <div class="fw-bold mb-1"><i class="bi bi-bullseye"></i> Next-incident forecast
+                        <span class="badge bg-secondary ms-1">{{ f.confidence }} confidence</span></div>
+                    <div><strong>Likely areas:</strong>
+                        {% for p in f.places %}{{ p.area }} ({{ p.share }}%){{ ', ' if not loop.last }}{% endfor %}
+                    </div>
+                    <div><strong>Likely timing:</strong>
+                        {% if f.overdue %}due now (expected gap was {{ f.avg_gap_days }} days and it has passed)
+                        {% else %}around {{ f.expected_date|fmt_date }}{% endif %},
+                        most often on a {{ f.weekday }}; incidents so far came about every {{ f.avg_gap_days }} day(s).
+                    </div>
+                    <div class="text-muted small mt-1">Estimate from the series' own pattern, for patrol planning. Not a certainty.</div>
+                </div>
+                {% endif %}
+                <table class="table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Area</th>
+                            <th>Reported Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in cluster.members %}
+                        <tr>
+                            <td class="mono">{{ m.id }}</td>
+                            <td>{{ m.title }}</td>
+                            <td>{{ m.area_name or '-' }}</td>
+                            <td>{{ m.reported_date|fmt_date }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-diagram-3" style="font-size: 2rem; opacity: .4;"></i>
+        <p class="mb-0 mt-2">No potential case series detected yet. This needs at least 3 same-category
+           crimes within {{ radius_km }} km and {{ window_days }} days of each other, and each crime
+           must have a location assigned.</p>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0">Reports</h3>
+    <a href="{{ url_for('export_report', **filters) }}" class="btn btn-success">
+        Export CSV
+    </a>
+</div>
+
+<!-- Period + filter selector -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('reports') }}" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Report Type</label>
+                <select name="period" id="periodSelect" class="form-select" onchange="this.form.submit()">
+                    <option value="daily" {{ 'selected' if filters.period == 'daily' }}>Daily</option>
+                    <option value="monthly" {{ 'selected' if filters.period == 'monthly' }}>Monthly</option>
+                    <option value="yearly" {{ 'selected' if filters.period == 'yearly' }}>Yearly</option>
+                </select>
+            </div>
+
+            {% if filters.period == 'daily' %}
+            <div class="col-md-3">
+                <label class="form-label">Date</label>
+                <input type="text" name="date" class="form-control" value="{{ filters.date|fmt_date }}" placeholder="DD-MM-YYYY" pattern="\d{2}[-/]\d{2}[-/]\d{4}" maxlength="10">
+            </div>
+            {% elif filters.period == 'monthly' %}
+            <div class="col-md-2">
+                <label class="form-label">Month</label>
+                <select name="month" class="form-select">
+                    {% for m in range(1, 13) %}
+                    <option value="{{ m }}" {{ 'selected' if filters.month|int == m }}>
+                        {{ ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1] }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Year</label>
+                <input type="number" name="year" class="form-control" value="{{ filters.year }}" min="2000" max="2100">
+            </div>
+            {% elif filters.period == 'yearly' %}
+            <div class="col-md-3">
+                <label class="form-label">Year</label>
+                <input type="number" name="year" class="form-control" value="{{ filters.year }}" min="2000" max="2100">
+            </div>
+            {% endif %}
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">Apply</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <strong>{{ records|length }}</strong> crime record(s) found for this period.
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Area</th>
+                    <th>District</th>
+                    <th>Status</th>
+                    <th>Reported Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in records %}
+                <tr>
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.title }}</td>
+                    <td>{{ r.category_name or '-' }}</td>
+                    <td>{{ r.area_name or '-' }}</td>
+                    <td>{{ r.district or '-' }}</td>
+                    <td>
+                        <span class="badge {{ 'bg-success' if r.status == 'Solved' else 'bg-warning' }}">
+                            {{ r.status }}
+                        </span>
+                    </td>
+                    <td>{{ r.reported_date|fmt_date }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted">No crime records for this period.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<h3 class="mb-4">Dashboard</h3>
+
+<!-- Dashboard Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h6>Total Crimes</h6>
+                <h2>{{ total_crimes }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h6>Solved Crimes</h6>
+                <h2>{{ solved_crimes }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h6>Pending Crimes</h6>
+                <h2>{{ pending_crimes }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h6>Today's Crimes</h6>
+                <h2>{{ todays_crimes }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6>Crime Category Chart</h6>
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6>Monthly Crime Chart</h6>
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Crime Records -->
+<div class="card">
+    <div class="card-body">
+        <h6>Recent Crime Records</h6>
+        <table class="table table-striped">
+            <thead>
+                <tr><th>ID</th><th>Title</th><th>Category</th><th>Status</th><th>Reported Date</th></tr>
+            </thead>
+            <tbody>
+                {% for r in recent_records %}
+                <tr>
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.title }}</td>
+                    <td>{{ r.category or '-' }}</td>
+                    <td>
+                        <span class="badge {{ 'bg-success' if r.status == 'Solved' else 'bg-warning' }}">
+                            {{ r.status }}
+                        </span>
+                    </td>
+                    <td>{{ r.reported_date|fmt_date }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-muted">No records yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+    const categoryLabels = {{ category_chart | map(attribute='category') | list | tojson }};
+    const categoryCounts = {{ category_chart | map(attribute='count') | list | tojson }};
+
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'pie',
+        data: {
+            labels: categoryLabels,
+            datasets: [{ data: categoryCounts }]
+        }
+    });
+
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const monthlyData = {{ monthly_chart | tojson }};
+    const monthlyLabels = monthlyData.map(m => monthNames[m.month - 1]);
+    const monthlyCounts = monthlyData.map(m => m.count);
+
+    new Chart(document.getElementById('monthlyChart'), {
+        type: 'line',
+        data: {
+            labels: monthlyLabels,
+            datasets: [{ label: 'Crimes', data: monthlyCounts, tension: 0.3 }]
+        }
+    });
+</script>
+{% endblock %}

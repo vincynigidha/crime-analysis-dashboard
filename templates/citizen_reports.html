@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Citizen Report Review{% endblock %}
+{% block content %}
+
+<h3 class="mb-4">Citizen Report Review Queue</h3>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Reference ID</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Area</th>
+                    <th>Incident Date</th>
+                    <th>Reporter</th>
+                    <th>Status</th>
+                    <th style="width: 180px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reports %}
+                <tr>
+                    <td class="mono">{{ r.reference_id }}</td>
+                    <td>{{ r.category_name or '-' }}</td>
+                    <td style="max-width: 260px;">{{ r.description[:100] }}{{ '...' if r.description|length > 100 }}</td>
+                    <td>{{ r.area_name or '-' }}</td>
+                    <td>{{ r.incident_date|fmt_date }}</td>
+                    <td>{{ r.reporter_name or 'Anonymous' }}</td>
+                    <td>
+                        <span class="badge {{ 'bg-success' if r.status == 'Verified' else ('bg-danger' if r.status == 'Rejected' else 'bg-warning') }}">
+                            {{ r.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if r.status == 'Pending Review' %}
+                        <form method="POST" action="{{ url_for('approve_citizen_report', report_id=r.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-success">Approve</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('reject_citizen_report', report_id=r.id) }}" class="d-inline"
+                              onsubmit="return confirm('Reject this report?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted small">No action needed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" class="text-center text-muted">No citizen reports yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
