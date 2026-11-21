@@ -16,6 +16,23 @@ A web-based crime analysis system for Tamil Nadu records, built with Flask and M
 
 All dates are displayed and entered as **DD-MM-YYYY**. The database stores them as `YYYY-MM-DD`.
 
+## Screenshots
+
+### Dashboard
+![Dashboard](Screenshots/Dashboard.png)
+
+### Crime Records
+![Crime Records](Screenshots/Crime%20records.png)
+
+### Case Linkage
+![Case Linkage](Screenshots/Case%20Linkage.png)
+
+### Prediction
+![Prediction](Screenshots/Prediction.png)
+
+### Trends
+![Trends](Screenshots/Trends.png)
+
 ## Tech Stack
 
 Python, Flask, MySQL (PyMySQL), Jinja2, Bootstrap and JavaScript charts.
@@ -32,21 +49,34 @@ Python, Flask, MySQL (PyMySQL), Jinja2, Bootstrap and JavaScript charts.
    pip install -r requirements.txt
    ```
 3. Create the database and tables by running `schema.sql` in MySQL.
-4. Set the environment variables (PowerShell):
+4. Set the environment variables in PowerShell. The app reads the MySQL password and secret key from these, so no password is stored in the code.
    ```powershell
    $env:DB_PASSWORD = "your-mysql-password"
    $env:SECRET_KEY = "any-long-random-text"
+   ```
+   These last only for the current terminal. To save them permanently, run the commands below once, then close and reopen the terminal or VS Code:
+   ```powershell
+   setx DB_PASSWORD "your-mysql-password"
+   setx SECRET_KEY "any-long-random-text"
    ```
    Optional: `DB_HOST`, `DB_USER` and `DB_NAME` (defaults are `localhost`, `root` and `crime_analysis`).
 5. Create the first admin login (one time).
    ```bash
    python create_admin.py
    ```
-6. Run the app.
+6. Run the app from the folder that contains `app.py`.
    ```bash
    python app.py
    ```
 7. Open http://127.0.0.1:5000 and log in.
+
+## Troubleshooting
+
+- **`Access denied for user 'root'@'localhost' (using password: NO)`:** the app did not get your password. Set `DB_PASSWORD` in the same terminal where you run `python app.py`, or use `setx` and reopen the terminal.
+- **`can't open file 'app.py'`:** you are in the wrong folder. Use `cd` to go into the folder that contains `app.py`.
+- **`Can't connect to MySQL server`:** start MySQL first.
+- **`Unknown database 'crime_analysis'`:** run `schema.sql` first.
+- **`No module named ...`:** run `pip install -r requirements.txt`.
 
 ## How the Prediction Works
 
@@ -67,6 +97,7 @@ ml/forecast.py    30-day area/category prediction and backtest
 templates/        HTML pages
 static/           CSS
 dataset/          Sample data
+Screenshots/      Images used in this README
 ```
 
 ## Notes
