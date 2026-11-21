@@ -41,7 +41,7 @@ Python, Flask, MySQL (PyMySQL), Jinja2, Bootstrap and JavaScript charts.
 
 1. Clone the repository.
    ```bash
-   git clone https://github.com/vincynigidha11-hub/crime-analysis-dashboard.git
+   git clone https://github.com/vincynigidha/crime-analysis-dashboard.git
    cd crime-analysis-dashboard
    ```
 2. Install the dependencies.
